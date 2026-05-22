@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>空调匹数计算器 - 输入面积自动算该买几匹</title>
+<meta name="description" content="根据房间面积、楼层、朝向自动计算空调匹数和制冷量。卧室客厅顶楼西晒天花机都能算，30秒出结果，买空调不选错。">
+<meta name="keywords" content="空调匹数计算,房间面积选空调,买几匹空调,空调选型,空调制冷量计算,客厅空调选多大,卧室空调几匹,天花机,大面积空调">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "空调1匹能管多少平米？",
+      "acceptedAnswer": { "@type": "Answer", "text": "1匹空调制冷量约2500W，普通环境覆盖8-12平米。西晒、顶楼等情况下建议按每平米220-250W计算。" }
+    },
+    {
+      "@type": "Question",
+      "name": "空调买大了会不会浪费电？",
+      "acceptedAnswer": { "@type": "Answer", "text": "空调买大一点反而更省电，大匹数空调达到设定温度后压缩机会降频低功耗运行。" }
+    },
+    {
+      "@type": "Question",
+      "name": "2026年家电国补怎么领？",
+      "acceptedAnswer": { "@type": "Answer", "text": "2026年家电以旧换新国补政策延续，购买一级或二级能效空调可享受补贴，具体补贴金额和申请流程建议咨询购买平台客服确认。" }
+    }
+  ]
+}
+</script>
+
+<style>
+:root {
+  --bg: #f6f4ef;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --muted: #7a7570;
+  --border: #e5e1da;
+  --accent: #c4381a;
+  --accent-bg: #fef3ee;
+  --teal: #0d7d6f;
+  --teal-bg: #e8f5f2;
+  --warn: #b8860b;
+  --warn-bg: #fdf8ec;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.6;
+  padding-bottom: calc(68px + var(--safe-b));
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 480px; margin: 0 auto; padding: 0 16px; }
+
+/* ===== 顶部横幅 ===== */
+.top-banner {
+  background: var(--text); color: white;
+  text-align: center; padding: 10px 16px;
+  font-size: 12px; font-weight: 500; line-height: 1.6;
+}
+.top-banner .kw-inline {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 5px; padding: 2px 8px;
+  color: var(--accent); font-size: 14px; font-weight: 900;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px; margin: 0 2px; vertical-align: middle;
+}
+
+/* Header */
+.page-header { padding: 28px 0 18px; text-align: center; }
+.page-header h1 { font-size: 24px; font-weight: 900; line-height: 1.4; margin-bottom: 10px; }
+.page-header h1 em { font-style: normal; color: var(--accent); }
+.page-header .desc { font-size: 14px; color: var(--muted); max-width: 340px; margin: 0 auto 14px; line-height: 1.7; }
+
+.pain-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.pain-tag { font-size: 12px; padding: 6px 14px; border-radius: 50px; background: var(--card); border: 1px solid var(--border); color: var(--muted); }
+
+/* Cards */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px; margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.card-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+
+.row { display: flex; gap: 10px; margin-bottom: 14px; }
+.field { flex: 1; }
+.field label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+
+.field input, .field select {
+  width: 100%; height: 48px; padding: 0 14px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 16px; font-weight: 600; font-family: inherit;
+  background: var(--bg); color: var(--text);
+  -webkit-appearance: none; appearance: none;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.field input::placeholder { color: #c0bbb5; font-weight: 400; }
+
+.unit-wrap { position: relative; }
+.unit-wrap input { padding-right: 40px; }
+.unit-wrap::after { content: attr(data-unit); position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--muted); pointer-events: none; }
+
+.select-wrap { position: relative; }
+.select-wrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  min-height: 44px; padding: 8px 16px;
+  border: 1.5px solid var(--border); border-radius: 50px;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s; background: transparent;
+  color: var(--muted); font-family: inherit;
+  user-select: none; display: inline-flex; align-items: center;
+}
+.chip.on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.chip:active { transform: scale(0.96); }
+
+.calc-btn {
+  width: 100%; height: 52px; border: none; border-radius: 12px;
+  background: var(--text); color: white;
+  font-size: 16px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  margin-top: 6px;
+}
+.calc-btn:active { transform: scale(0.98); }
+
+.mid-hint {
+  background: var(--accent-bg); border: 1.5px solid rgba(196,56,26,0.15);
+  border-radius: 12px; padding: 14px; margin-top: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.mid-hint .hint-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--accent); color: white;
+  font-size: 16px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-family: 'Courier New', monospace;
+}
+.mid-hint .hint-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.mid-hint .hint-text strong { color: var(--accent); font-family: 'Courier New', monospace; font-size: 15px; letter-spacing: 1px; }
+
+/* Result */
+.result { display: none; }
+.result.show { display: block; animation: slideUp 0.4s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+.result-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.result-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 4px; background: linear-gradient(90deg, var(--accent), var(--teal));
+}
+
+.result-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.result-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.result-num { font-size: 34px; font-weight: 900; color: var(--accent); line-height: 1.1; }
+.result-num small { font-size: 15px; font-weight: 500; color: var(--muted); }
+.result-badge { background: var(--teal-bg); color: var(--teal); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 50px; flex-shrink: 0; margin-top: 4px; }
+
+.detail-box { background: var(--bg); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 13px; }
+.detail-row:not(:last-child) { border-bottom: 1px solid var(--border); }
+.detail-row .k { color: var(--muted); }
+.detail-row .v { font-weight: 600; text-align: right; }
+.detail-row .v.big { color: var(--accent); font-size: 16px; font-weight: 700; }
+
+.rec-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+.rec-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+.rec-item { display: flex; gap: 12px; padding: 14px; background: var(--bg); border-radius: 12px; border: 1.5px solid var(--border); }
+.rec-item.best { border-color: var(--accent); background: var(--accent-bg); position: relative; }
+.rec-item.best::after {
+  content: '推荐'; position: absolute; top: 8px; right: 10px;
+  font-size: 10px; font-weight: 700; color: white;
+  background: var(--accent); padding: 2px 8px; border-radius: 50px;
+}
+.rec-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: var(--card); }
+.rec-item.best .rec-icon { background: white; }
+.rec-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.rec-body p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.tip-box { background: var(--warn-bg); border: 1px solid #f0e0b0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.tip-box .tip-head { font-size: 13px; font-weight: 700; color: var(--warn); margin-bottom: 8px; }
+.tip-box ul { list-style: none; font-size: 12px; color: #8a7050; line-height: 1.8; }
+.tip-box li::before { content: '·'; margin-right: 8px; font-weight: 700; color: var(--warn); }
+
+.result-cta-inline {
+  background: var(--text); border-radius: 12px; padding: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.result-cta-inline .rkw-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+.result-cta-inline .rkw-body { flex: 1; min-width: 0; }
+.result-cta-inline .rkw-body .rkw-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 2px; }
+.result-cta-inline .rkw-body .rkw-kw { font-size: 18px; font-weight: 900; color: var(--accent); font-family: 'Courier New', monospace; letter-spacing: 3px; }
+.result-cta-inline .rkw-copy {
+  min-height: 44px; padding: 0 18px; border: none; border-radius: 50px;
+  background: var(--accent); color: white;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit; flex-shrink: 0;
+}
+.result-cta-inline .rkw-copy:active { transform: scale(0.95); }
+
+/* 为什么找客服 */
+.why-box { background: var(--teal-bg); border: 1px solid rgba(13,125,111,0.15); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.why-box .why-head { font-size: 15px; font-weight: 700; color: var(--teal); margin-bottom: 14px; }
+.why-list { display: flex; flex-direction: column; gap: 12px; }
+.why-item { display: flex; gap: 12px; align-items: flex-start; }
+.why-item .why-icon { width: 28px; height: 28px; border-radius: 7px; background: white; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.why-item .why-text { font-size: 13px; color: #333; line-height: 1.5; }
+.why-item .why-text strong { color: var(--teal); }
+
+/* 专属客服优势 */
+.adv-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px; margin-bottom: 14px;
+}
+.adv-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.adv-title { font-size: 14px; font-weight: 700; }
+.adv-tag { font-size: 10px; font-weight: 700; color: white; background: var(--teal); padding: 3px 10px; border-radius: 50px; }
+
+.adv-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  margin-bottom: 10px; font-size: 12px;
+  overflow: hidden; border-radius: 10px; border: 1px solid var(--border);
+}
+.adv-table th { padding: 9px 8px; font-size: 12px; font-weight: 700; text-align: center; border-bottom: 1px solid var(--border); }
+.adv-table th:first-child { background: var(--bg); width: 28%; }
+.adv-table th:nth-child(2) { background: #f0ece5; color: var(--muted); width: 36%; }
+.adv-table th:nth-child(3) { background: var(--teal-bg); color: var(--teal); width: 36%; }
+.adv-table td { padding: 8px; text-align: center; font-size: 12px; }
+.adv-table td:first-child { color: var(--muted); font-weight: 500; text-align: left; padding-left: 10px; background: var(--bg); border-right: 1px solid var(--border); }
+.adv-table td:nth-child(2) { color: #999; background: rgba(240,236,229,0.3); border-right: 1px solid var(--border); }
+.adv-table td:nth-child(3) { color: var(--teal); font-weight: 600; background: rgba(232,245,242,0.3); }
+.adv-table tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
+.adv-foot { text-align: center; font-size: 12px; color: var(--muted); }
+
+/* 操作指引 */
+.steps-box {
+  background: var(--bg); border: 1px dashed var(--border);
+  border-radius: 12px; padding: 16px; margin-bottom: 14px;
+}
+.steps-box .steps-title {
+  font-size: 13px; font-weight: 700; color: var(--accent);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.steps-box .step-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: #555; line-height: 1.5;
+  margin-bottom: 8px;
+}
+.steps-box .step-row:last-child { margin-bottom: 0; }
+.steps-box .step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.steps-box .step-row strong { color: var(--accent); }
+
+/* CTA */
+.cta {
+  background: var(--text); border-radius: 16px; padding: 24px 20px;
+  text-align: center; position: relative; overflow: hidden; margin-bottom: 20px;
+}
+.cta::before { content: ''; position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; background: rgba(196,56,26,0.15); border-radius: 50%; }
+.cta h3 { font-size: 17px; font-weight: 700; color: white; margin-bottom: 8px; position: relative; z-index: 1; }
+.cta p { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 16px; position: relative; z-index: 1; line-height: 1.7; }
+.cta .kw {
+  display: inline-block; background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+  padding: 10px 24px; color: var(--accent);
+  font-size: 22px; font-weight: 900; letter-spacing: 4px;
+  font-family: 'Courier New', monospace; margin-bottom: 16px;
+  position: relative; z-index: 1;
+}
+.cta-btns { display: flex; gap: 10px; position: relative; z-index: 1; }
+.cta-btn {
+  flex: 1; min-height: 48px; border: none; border-radius: 50px;
+  font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center;
+}
+.cta-btn:active { transform: scale(0.96); }
+.cta-btn.primary { background: var(--accent); color: white; }
+.cta-btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; }
+
+/* FAQ */
+.knowledge { margin: 20px 0; }
+.knowledge h2 { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+.faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 10px; }
+.faq-item h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+.faq-item p { font-size: 13px; color: #555; line-height: 1.7; }
+
+.footer { text-align: center; padding: 20px 0; font-size: 11px; color: #bbb; line-height: 1.8; }
+
+/* 底部悬浮条 */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--text); padding: 10px 16px;
+  padding-bottom: calc(10px + var(--safe-b));
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  z-index: 100; box-shadow: 0 -2px 20px rgba(0,0,0,0.15);
+}
+.bottom-bar .bar-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.bottom-bar .bar-dot { width: 8px; height: 8px; background: #00c853; border-radius: 50%; animation: blink 2s ease infinite; flex-shrink: 0; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.bottom-bar .bar-text { font-size: 13px; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bottom-bar .bar-text strong { color: var(--accent); font-size: 15px; font-family: 'Courier New', monospace; letter-spacing: 2px; font-weight: 900; }
+.bottom-bar .bar-btn {
+  min-height: 44px; padding: 0 18px; border: none; border-radius: 50px;
+  background: var(--accent); color: white;
+  font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+  flex-shrink: 0; white-space: nowrap;
+}
+.bottom-bar .bar-btn:active { transform: scale(0.95); }
+
+.toast {
+  position: fixed; bottom: calc(80px + var(--safe-b)); left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(26,26,26,0.92); color: white;
+  padding: 12px 20px; border-radius: 50px;
+  font-size: 13px; opacity: 0; transition: all 0.3s;
+  pointer-events: none; z-index: 999; backdrop-filter: blur(10px);
+  text-align: center; max-width: 90%;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 350px) {
+  .wrap { padding: 0 12px; }
+  .card { padding: 16px; }
+  .page-header h1 { font-size: 21px; }
+  .top-banner { font-size: 11px; padding: 8px 12px; }
+  .top-banner .kw-inline { font-size: 12px; }
+  .result-num { font-size: 28px; }
+  .cta .kw { font-size: 18px; padding: 8px 16px; }
+  .adv-table { font-size: 11px; }
+  .adv-table th, .adv-table td { padding: 6px 4px; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-header { padding: 16px 0 12px; }
+  .page-header h1 { font-size: 20px; }
+  .pain-tags { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- 口令① 顶部横幅 -->
+<div class="top-banner">
+  京东 · 长虹空调官方旗舰店 · 点客服发送 <span class="kw-inline">转1号客服</span> 找专属客服
+</div>
+
+<div class="wrap">
+
+  <header class="page-header">
+    <h1>买空调之前<br><em>先算清楚该买几匹</em></h1>
+    <p class="desc">匹数选错是最常见的坑——买小了制冷不行还费电，买大了多花钱。花30秒算一下，剩下的交给我帮你选。</p>
+    <div class="pain-tags">
+      <span class="pain-tag">不知道买几匹</span>
+      <span class="pain-tag">怕选错退换麻烦</span>
+      <span class="pain-tag">参数看不懂</span>
+      <span class="pain-tag">国补怎么领</span>
+    </div>
+  </header>
+
+  <!-- 计算器 -->
+  <section class="card">
+    <div class="card-label">房间信息</div>
+    <div class="row">
+      <div class="field">
+        <label>房间面积</label>
+        <div class="unit-wrap" data-unit="㎡">
+          <input type="number" id="area" placeholder="如：15" min="1" max="500" inputmode="decimal">
+        </div>
+      </div>
+      <div class="field">
+        <label>层高</label>
+        <div class="select-wrap">
+          <select id="height">
+            <option value="2.7">普通（≤2.8m）</option>
+            <option value="3.0">偏高（3.0m）</option>
+            <option value="3.5">挑高/复式（3.5m+）</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>房间类型</label>
+        <div class="select-wrap">
+          <select id="room">
+            <option value="bedroom">卧室</option>
+            <option value="living">客厅</option>
+            <option value="study">书房 / 小房间</option>
+            <option value="shop">商铺 / 办公室</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>楼层位置</label>
+        <div class="select-wrap">
+          <select id="floor">
+            <option value="mid">中间层</option>
+            <option value="top">顶层</option>
+            <option value="bot">一楼 / 底层</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-label">特殊因素（可多选）</div>
+    <div class="chips">
+      <button class="chip" data-v="west" onclick="toggle(this)">☀️ 西晒</button>
+      <button class="chip" data-v="glass" onclick="toggle(this)">🪟 大面积玻璃</button>
+      <button class="chip" data-v="kitchen" onclick="toggle(this)">🍳 连通厨房</button>
+      <button class="chip" data-v="weak" onclick="toggle(this)">🏠 隔热差 / 铁皮顶</button>
+      <button class="chip" data-v="south" onclick="toggle(this)">🌡️ 南方高温地区</button>
+      <button class="chip" data-v="device" onclick="toggle(this)">💻 多设备 / 多人</button>
+    </div>
+    <!-- 口令② -->
+    <div class="mid-hint">
+      <div class="hint-icon">1</div>
+      <div class="hint-text">
+        算完匹数后，到京东搜 <strong>长虹空调官方旗舰店</strong> → 点 <strong>客服</strong> → 发送 <strong>转1号客服</strong>
+      </div>
+    </div>
+  </section>
+
+  <button class="calc-btn" onclick="calc()">帮我算一下该买几匹 →</button>
+
+  <!-- ===== 结果区 ===== -->
+  <section class="result" id="result">
+
+    <div class="result-card">
+      <div class="result-top">
+        <div>
+          <div class="result-label" id="rLabel">你家需要的制冷量</div>
+          <div class="result-num" id="rWatt">—<small> W</small></div>
+        </div>
+        <div class="result-badge" id="rType">—</div>
+      </div>
+      <div class="detail-box" id="rDetail"></div>
+      <div class="rec-title" id="rRecTitle">匹数推荐</div>
+      <div class="rec-grid" id="rRec"></div>
+      <div class="tip-box" id="rTip"></div>
+      <!-- 口令③ -->
+      <div class="result-cta-inline">
+        <div class="rkw-icon">💬</div>
+        <div class="rkw-body">
+          <div class="rkw-label">京东 · 长虹空调官方旗舰店 · 点客服发送</div>
+          <div class="rkw-kw">转1号客服</div>
+        </div>
+        <button class="rkw-copy" onclick="copyKw()">复制</button>
+      </div>
+    </div>
+
+    <!-- 为什么找客服 -->
+    <div class="why-box">
+      <div class="why-head">算好了但别急着下单</div>
+      <div class="why-list">
+        <div class="why-item">
+          <div class="why-icon">📐</div>
+          <div class="why-text"><strong>匹数选错退换很麻烦</strong>，我帮你根据具体户型二次确认</div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">📊</div>
+          <div class="why-text">同价位不同型号<strong>参数差异很大</strong>，我帮你对比压缩机、能效、噪音</div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">🔧</div>
+          <div class="why-text">安装环节最容易多花钱，我帮你<strong>提前确认铜管、打孔、高空费</strong></div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">🎫</div>
+          <div class="why-text">不确定能不能领<strong>国补</strong>？帮你查资格、算补贴金额，能省不少</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 专属客服优势 -->
+    <section class="adv-box">
+      <div class="adv-top">
+        <span class="adv-title">找专属客服 vs 随机分配</span>
+        <span class="adv-tag">更省心</span>
+      </div>
+      <table class="adv-table">
+        <tr>
+          <th></th>
+          <th>随机分配</th>
+          <th>专属客服</th>
+        </tr>
+        <tr>
+          <td>需求记录</td>
+          <td>每次重说</td>
+          <td>有记录直接聊</td>
+        </tr>
+        <tr>
+          <td>售后问题</td>
+          <td>重新排队</td>
+          <td>直接找我</td>
+        </tr>
+        <tr>
+          <td>国补 / 大促</td>
+          <td>自己研究</td>
+          <td>帮你查帮你算</td>
+        </tr>
+      </table>
+      <div class="adv-foot">买前帮你选、买后帮你盯，一个客服跟到底</div>
+    </section>
+
+    <!-- 操作指引 -->
+    <div class="steps-box">
+      <div class="steps-title">📱 怎么找到我？</div>
+      <div class="step-row">
+        <span class="step-num">1</span>
+        <span>打开京东APP，搜索 <strong>长虹空调官方旗舰店</strong></span>
+      </div>
+      <div class="step-row">
+        <span class="step-num">2</span>
+        <span>进入店铺，点 <strong>「客服」</strong> 按钮</span>
+      </div>
+      <div class="step-row">
+        <span class="step-num">3</span>
+        <span>在对话框发送 <strong>转1号客服</strong>，即可找到我</span>
+      </div>
+    </div>
+
+    <!-- 口令④ CTA -->
+    <div class="cta">
+      <h3>不确定选哪款？来找我聊</h3>
+      <p>把你的面积、朝向、预算告诉我<br>帮你出具体方案，查国补资格，不买也没关系</p>
+      <div class="kw">转1号客服</div>
+      <br>
+      <div class="cta-btns">
+        <button class="cta-btn primary" onclick="copyKw()">复制口令</button>
+        <button class="cta-btn secondary" onclick="goShop()">直接去店铺</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="knowledge">
+    <h2>空调选购常见问题</h2>
+    <div class="faq-item">
+      <h3>空调1匹能管多少平米？</h3>
+      <p>1匹空调制冷量约2500W，普通环境覆盖8-12平米。西晒、顶楼、层高超2.8米、连通厨房等情况下有效覆盖面积会缩小。建议按每平米220-250W制冷量来算，宁可大半匹也别选小了。</p>
+    </div>
+    <div class="faq-item">
+      <h3>空调买大了会不会浪费电？</h3>
+      <p>大匹数空调达到设定温度后压缩机会降频运行，处于低功耗状态。而匹数不够的空调压缩机一直满负荷跑，不仅制冷慢，耗电反而更高，寿命也更短。空调选购原则是"宁大勿小"。</p>
+    </div>
+    <div class="faq-item">
+      <h3>一级能效和三级能效差多少电费？</h3>
+      <p>同样标一级能效，APF值从4.5到5.5都算一级。以1.5匹为例，APF 5.0比APF 4.0每小时约省0.15度电。夏天每天开8小时、开4个月，一年约省150-200元。差价在300以内选高APF的更划算。</p>
+    </div>
+    <div class="faq-item">
+      <h3>客厅选柜机还是挂机？</h3>
+      <p>20平米以下小客厅挂机够用，省空间。25平米以上建议柜机，出风量大、送风远。卧室一般选挂机，噪音更小、不占地方。大面积商铺或办公室建议天花机，不占空间制冷均匀。</p>
+    </div>
+    <div class="faq-item">
+      <h3>空调安装费一般多少钱？</h3>
+      <p>基础安装通常免费或含在价格里。额外费用：加长铜管约80-120元/米、高空作业费（4楼以上外墙）、特殊墙体打孔。下单前跟客服确认清楚避免安装时被加价。</p>
+    </div>
+    <div class="faq-item">
+      <h3>什么时候买一级能效？什么时候三级够了？</h3>
+      <p>使用频率高（夏天每天6小时以上、冬天也制热），一级能效两三年就能通过省电把差价赚回来。偶尔用用三级能效性价比更高。卧室建议选一级，噪音控制通常也更好。</p>
+    </div>
+    <div class="faq-item">
+      <h3>2026年家电国补怎么领？空调能补多少？</h3>
+      <p>2026年家电以旧换新国补政策延续，购买一级或二级能效空调可享受补贴。补贴金额因地区和产品不同，一般在售价的15%-20%，单台上限几百到上千元不等。具体资格和金额建议咨询购买平台客服，帮你查清楚再下单，别错过优惠。</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    空调匹数计算器 · 结果仅供参考，实际选购请结合具体情况<br>
+    京东 · 长虹空调官方旗舰店 · 1号客服
+  </div>
+</div>
+
+<!-- 口令⑤ 底部悬浮条 -->
+<div class="bottom-bar">
+  <div class="bar-left">
+    <span class="bar-dot"></span>
+    <span class="bar-text">找专属客服发送 <strong>转1号客服</strong></span>
+  </div>
+  <button class="bar-btn" onclick="copyKw()">复制口令</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SHOP_URL = 'https://shop.m.jd.com/?shopId=139801';
+const KEYWORD = '转1号客服';
+const TIANHUA_W = 12000;
+
+function calc() {
+  const area = parseFloat(document.getElementById('area').value);
+  if (!area || area <= 0) { showToast('请输入房间面积'); return; }
+
+  const height = parseFloat(document.getElementById('height').value);
+  const room = document.getElementById('room').value;
+  const floor = document.getElementById('floor').value;
+  const active = document.querySelectorAll('.chip.on');
+  const factors = Array.from(active).map(c => c.dataset.v);
+
+  let wPerSqm = 220;
+  if (height >= 3.5) wPerSqm += 40;
+  else if (height >= 3.0) wPerSqm += 20;
+  if (floor === 'top') wPerSqm += 25;
+  if (floor === 'bot') wPerSqm += 10;
+  if (room === 'living') wPerSqm += 10;
+  if (room === 'shop') wPerSqm += 25;
+  if (factors.includes('west')) wPerSqm += 30;
+  if (factors.includes('glass')) wPerSqm += 25;
+  if (factors.includes('kitchen')) wPerSqm += 30;
+  if (factors.includes('weak')) wPerSqm += 30;
+  if (factors.includes('south')) wPerSqm += 20;
+  if (factors.includes('device')) wPerSqm += 20;
+
+  let totalW = Math.ceil(area * wPerSqm * 1.20);
+
+  const specs = [
+    { hp: '小1匹', w: 2300 }, { hp: '1匹', w: 2500 },
+    { hp: '大1匹', w: 2600 }, { hp: '小1.5匹', w: 3200 },
+    { hp: '1.5匹', w: 3500 }, { hp: '大1.5匹', w: 3600 },
+    { hp: '2匹', w: 5100 }, { hp: '大2匹', w: 5200 },
+    { hp: '3匹', w: 7200 }, { hp: '大3匹', w: 7600 },
+  ];
+
+  let basic, better = null, mType;
+  let isLarge = false;
+  let tianhuaCount = 0;
+
+  if (totalW <= 7600) {
+    basic = specs[specs.length - 1];
+    for (let i = 0; i < specs.length; i++) {
+      if (specs[i].w >= totalW) { basic = specs[i]; break; }
+    }
+    const idx = specs.indexOf(basic);
+    if (idx + 1 < specs.length) better = specs[idx + 1];
+    const isFloor = (room === 'living' && area >= 20) || room === 'shop' || basic.w >= 5000;
+    mType = isFloor ? '柜机' : '挂机';
+  } else {
+    isLarge = true;
+    tianhuaCount = Math.ceil(totalW / TIANHUA_W);
+    basic = { hp: '5匹', w: TIANHUA_W };
+    mType = '天花机';
+  }
+
+  document.getElementById('rWatt').innerHTML = totalW + '<small> W</small>';
+  document.getElementById('rType').textContent = isLarge ? '大面积方案' : mType;
+
+  if (isLarge) {
+    document.getElementById('rLabel').textContent = '所需总制冷量';
+    document.getElementById('rRecTitle').textContent = '推荐配置方案';
+
+    document.getElementById('rDetail').innerHTML = `
+      <div class="detail-row"><span class="k">空间面积</span><span class="v">${area} ㎡</span></div>
+      <div class="detail-row"><span class="k">单位负荷</span><span class="v">${wPerSqm} W/㎡</span></div>
+      <div class="detail-row"><span class="k">含安全余量（+20%）</span><span class="v big">${totalW} W</span></div>
+      <div class="detail-row"><span class="k">单台5匹天花机</span><span class="v">12000W</span></div>
+      <div class="detail-row"><span class="k">建议配置</span><span class="v big">${tianhuaCount} 台5匹天花机</span></div>
+    `;
+
+    let recs = '';
+    if (tianhuaCount === 1) {
+      recs = `<div class="rec-item best"><div class="rec-icon">🏗️</div><div class="rec-body"><h4>5匹天花机（12000W）</h4><p>嵌入式安装在天花板，制冷均匀、不占地面空间。适合大面积客厅、商铺、办公室等场所。</p></div></div>`;
+    } else {
+      recs = `
+        <div class="rec-item best"><div class="rec-icon">🏗️</div><div class="rec-body"><h4>${tianhuaCount} 台5匹天花机（每台12000W）</h4><p>总制冷量 ${tianhuaCount * 12000}W，覆盖 ${area}㎡。多台分区安装，制冷更均匀、互相备份。</p></div></div>
+        <div class="rec-item"><div class="rec-icon">🔀</div><div class="rec-body"><h4>也可以混合搭配</h4><p>如果空间分为多个区域，可以按各区域面积分别计算匹数，搭配不同规格的空调，更灵活也更省。</p></div></div>`;
+    }
+    document.getElementById('rRec').innerHTML = recs;
+
+    let tips = [
+      `${area}㎡属于大面积空间，单台挂机/柜机制冷量不够，天花机是更合适的选择`,
+      '天花机需要吊顶安装，建议装修阶段提前规划管路和电源',
+      '大面积空间建议联系客服做分区方案，按各区域分别配置更合理',
+      '确认国补资格，大面积采购可能补贴金额更高',
+    ];
+    document.getElementById('rTip').innerHTML = `<div class="tip-head">💡 大面积选购提醒</div><ul>${tips.map(t => `<li>${t}</li>`).join('')}</ul>`;
+
+  } else {
+    document.getElementById('rLabel').textContent = '你家需要的制冷量';
+    document.getElementById('rRecTitle').textContent = '匹数推荐';
+
+    document.getElementById('rDetail').innerHTML = `
+      <div class="detail-row"><span class="k">房间面积</span><span class="v">${area} ㎡</span></div>
+      <div class="detail-row"><span class="k">单位负荷</span><span class="v">${wPerSqm} W/㎡</span></div>
+      <div class="detail-row"><span class="k">含安全余量（+20%）</span><span class="v big">${totalW} W</span></div>
+      <div class="detail-row"><span class="k">基础匹数</span><span class="v">${basic.hp} ${mType}（${basic.w}W）</span></div>
+      ${better ? `<div class="detail-row"><span class="k">舒适之选</span><span class="v" style="color:var(--teal)">${better.hp} ${mType}（${better.w}W）</span></div>` : ''}
+    `;
+
+    let recs = '';
+    if (better) {
+      recs += `<div class="rec-item best"><div class="rec-icon">⭐</div><div class="rec-body"><h4>${better.hp}${mType}（${better.w}W）</h4><p>制冷更快更从容，压缩机低负荷运行更省电、寿命更长。遇到连续高温也不吃力。</p></div></div>`;
+    }
+    recs += `<div class="rec-item${better ? '' : ' best'}"><div class="rec-icon">🎯</div><div class="rec-body"><h4>${basic.hp}${mType}（${basic.w}W）</h4><p>刚好满足需求，适合预算有限的情况。日常够用，但极端高温天可能运行较吃力。</p></div></div>`;
+    document.getElementById('rRec').innerHTML = recs;
+
+    let tips = [];
+    if (factors.includes('west') || floor === 'top') tips.push('西晒/顶楼夏天室温比普通房间高5-8°C，匹数一定不能省');
+    if (better) tips.push(`选${basic.hp}的话普通天气够用，但遇到38°C+连续高温可能制冷吃力，压缩机满负荷运转反而更费电`);
+    if (area <= 14 && room === 'bedroom') tips.push('卧室建议选最低噪音≤25分贝的机型，睡觉时差别很大');
+    tips.push('下单前确认铜管标配长度，超出部分按米收费（约80-120元/米）');
+    tips.push('匹数选错退换麻烦，拿不准把户型信息发给客服帮你确认');
+    tips.push('记得问客服你的情况能不能领国补，能省不少钱');
+
+    document.getElementById('rTip').innerHTML = `<div class="tip-head">💡 选购提醒</div><ul>${tips.map(t => `<li>${t}</li>`).join('')}</ul>`;
+  }
+
+  document.getElementById('result').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function toggle(el) { el.classList.toggle('on'); }
+
+function copyKw() {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(KEYWORD).then(() => done());
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = KEYWORD;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    done();
+  }
+  function done() { showToast('已复制「' + KEYWORD + '」→ 打开京东 → 长虹空调官方旗舰店 → 点客服 → 粘贴发送'); }
+}
+
+function goShop() { window.open(SHOP_URL, '_blank'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+
+</body>
+</html>
